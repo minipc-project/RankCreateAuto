@@ -1,5 +1,9 @@
 name: Release YML
 
+permissions:
+  contents: write
+  releases: write
+
 on:
   push:
     branches:
