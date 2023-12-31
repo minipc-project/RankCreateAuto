@@ -1,51 +1,30 @@
-name: Release YML
+name: Generate Ranks YML
 
-permissions:
-  contents: write
-  releases: write
-
-on:
-  push:
-    branches:
-      - main  # or - master if you use the name master for your default branch
+on: [push]
 
 jobs:
-  create-release:
+  build-ranks-file:
     runs-on: ubuntu-latest
+
     steps:
     - name: Check out the repository
       uses: actions/checkout@v2
 
-    - name: Set up Python
+    - name: Set up Python 3.x
       uses: actions/setup-python@v2
       with:
-        python-version: '3.8' # Replace with the version of Python you use
+        python-version: '3.x'  # Use the Python version that your project requires
 
-    - name: Install Python dependencies
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pyyaml # or use a requirements.txt file
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Run the script to create ranks.yml
+    - name: Generate Ranks YML file
       run: python RankCreate.py
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # This token is provided by GitHub Actions
+    - name: Upload Ranks File
+      uses: actions/upload-artifact@v2
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        draft: false
-        prerelease: false
-
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, grabs the upload_url.
-        asset_path: ./ranks.yml
-        asset_name: ranks.yml
-        asset_content_type: application/x-yaml
+        name: ranks-file
+        path: ./ranks.yml
